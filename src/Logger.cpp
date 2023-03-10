@@ -7,6 +7,8 @@
 #include <fstream>
 #include <memory>
 
+namespace Sada {
+
 enum class LogLevel : uint8_t
 {
     Error,
@@ -230,4 +232,6 @@ std::stringstream& Logger::log_info()
 std::stringstream& Logger::log_debug()
 {
     return Logger::instance().m_logger_pImpl.get_log_stream(LogLevel::Debug, "", 20);
+}
+
 }

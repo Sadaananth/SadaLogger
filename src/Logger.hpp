@@ -4,6 +4,8 @@
 #include <sstream>
 #include <optional>
 
+namespace Sada {
+
 class LoggerImpl;
 
 class Logger
@@ -29,3 +31,5 @@ private:
 
     LoggerImpl& m_logger_pImpl;
 };
+
+}

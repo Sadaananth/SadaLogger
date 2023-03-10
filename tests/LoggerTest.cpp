@@ -2,6 +2,8 @@
 #include <thread>
 #include <chrono>
 
+using namespace Sada;
+
 int main()
 {
     Logger::instance().add_sink(Logger::Sink::console);
