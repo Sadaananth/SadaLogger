@@ -7,12 +7,16 @@ using namespace Sada;
 int main()
 {
     Logger::instance().add_sink(Logger::Sink::console);
-    Logger::log_debug() << "Inside main";
+    //LOG_DEBUG << "Inside main";
+    LOG_DEBUG << "This is a debug message";
+    LOG_INFO << "This is a info message";
+    LOG_WARN << "This is a warning message";
+    LOG_ERROR << "This is a error message";
 
-    uint64_t count = 0;
+    // uint64_t count = 0;
     while(true) {
-        Logger::log_debug() << "Count: " << count;
-        ++count;
+        //LOG_DEBUG << "Count: " << count;
+        //++count;
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
     return 0;

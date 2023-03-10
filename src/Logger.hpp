@@ -6,6 +6,11 @@
 
 namespace Sada {
 
+#define LOG_ERROR Logger::log_error(__FILE__, __LINE__)
+#define LOG_WARN Logger::log_warn(__FILE__, __LINE__) 
+#define LOG_INFO Logger::log_info(__FILE__, __LINE__)
+#define LOG_DEBUG Logger::log_debug(__FILE__, __LINE__)
+
 class LoggerImpl;
 
 class Logger
@@ -19,10 +24,10 @@ public:
 
     static Logger& instance();
 
-    static std::stringstream& log_error();
-    static std::stringstream& log_warn();
-    static std::stringstream& log_info();
-    static std::stringstream& log_debug();
+    static std::stringstream& log_error(const std::string& filename, uint32_t lineno);
+    static std::stringstream& log_warn(const std::string& filename, uint32_t lineno);
+    static std::stringstream& log_info(const std::string& filename, uint32_t lineno);
+    static std::stringstream& log_debug(const std::string& filename, uint32_t lineno);
 
     void add_sink(Sink logsink, std::optional<std::string> filename = std::nullopt);
 private:

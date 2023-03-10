@@ -17,21 +17,37 @@ enum class LogLevel : uint8_t
     Debug
 };
 
+std::string to_string(LogLevel loglevel)
+{
+    switch(loglevel) {
+        case LogLevel::Error:
+            return "Error";
+        case LogLevel::Warning:
+            return "Warning";
+        case LogLevel::Info:
+            return "Info";
+        case LogLevel::Debug:
+            return "Debug";
+    }
+
+    throw std::runtime_error("Invalid log level");
+}
+
 struct LogLine
 {
     LogLine() {}
-    LogLine(LogLevel level, const std::string& filename, uint32_t lineno);
+    LogLine(LogLevel level, const std::string& filename, const std::string& lineno);
     LogLine(const LogLine&& logLine);
 
     void operator = (const LogLine& log_line);
 
     LogLevel m_log_level;
     std::string m_file_name;
-    uint32_t m_line_no;
+    std::string m_line_no;
     std::stringstream m_line_stream;
 };
 
-LogLine::LogLine(LogLevel level, const std::string& filename, uint32_t lineno)
+LogLine::LogLine(LogLevel level, const std::string& filename, const std::string& lineno)
     : m_log_level(level)
     , m_file_name(filename)
     , m_line_no(lineno)
@@ -101,7 +117,7 @@ class LoggerImpl
 public:
     static LoggerImpl& instance();
 
-    std::stringstream& get_log_stream(LogLevel loglevel, const std::string& filename, uint32_t lineno);
+    std::stringstream& get_log_stream(LogLevel loglevel, const std::string& filename, const std::string& lineno);
 
     void add_sink(std::unique_ptr<LogSink> log_sink);
 private:
@@ -111,6 +127,7 @@ private:
     void log(LogLevel level);
     void run();
     void sink_output(const LogLine& log_line);
+    std::string format_output(const LogLine& log_line);
 
     std::thread m_thread;
 
@@ -131,7 +148,7 @@ LoggerImpl::LoggerImpl()
     m_thread = std::thread(&LoggerImpl::run, this);
 }
 
-std::stringstream& LoggerImpl::get_log_stream(LogLevel loglevel, const std::string& filename, uint32_t lineno)
+std::stringstream& LoggerImpl::get_log_stream(LogLevel loglevel, const std::string& filename, const std::string& lineno)
 {
     LogLine log_line(loglevel, filename, lineno);
 
@@ -176,8 +193,19 @@ void LoggerImpl::run()
 void LoggerImpl::sink_output(const LogLine& log_line)
 {
     for(auto& sink : m_sink_list) {
-        sink->print(log_line.m_line_stream.str());
+        auto output = format_output(log_line);
+        sink->print(output);
     }
+}
+
+std::string LoggerImpl::format_output(const LogLine& log_line)
+{
+    std::stringstream outputstream;
+
+    outputstream << "[" << to_string(log_line.m_log_level) << "] " << log_line.m_file_name << ":" << log_line.m_line_no
+        << " " << log_line.m_line_stream.str() << std::endl;
+    
+    return outputstream.str();
 }
 
 Logger& Logger::instance()
@@ -214,24 +242,24 @@ void Logger::add_sink(Logger::Sink logsink, std::optional<std::string> filename)
     }
 }
 
-std::stringstream& Logger::log_error()
+std::stringstream& Logger::log_error(const std::string& filename, uint32_t lineno)
 {
-    return Logger::instance().m_logger_pImpl.get_log_stream(LogLevel::Error, "", 20);
+    return Logger::instance().m_logger_pImpl.get_log_stream(LogLevel::Error, filename, std::to_string(lineno));
 }
 
-std::stringstream& Logger::log_warn()
+std::stringstream& Logger::log_warn(const std::string& filename, uint32_t lineno)
 {
-    return Logger::instance().m_logger_pImpl.get_log_stream(LogLevel::Warning, "", 20);
+    return Logger::instance().m_logger_pImpl.get_log_stream(LogLevel::Warning, filename, std::to_string(lineno));
 }
 
-std::stringstream& Logger::log_info()
+std::stringstream& Logger::log_info(const std::string& filename, uint32_t lineno)
 {
-    return Logger::instance().m_logger_pImpl.get_log_stream(LogLevel::Info, "", 20);
+    return Logger::instance().m_logger_pImpl.get_log_stream(LogLevel::Info, filename, std::to_string(lineno));
 }
 
-std::stringstream& Logger::log_debug()
+std::stringstream& Logger::log_debug(const std::string& filename, uint32_t lineno)
 {
-    return Logger::instance().m_logger_pImpl.get_log_stream(LogLevel::Debug, "", 20);
+    return Logger::instance().m_logger_pImpl.get_log_stream(LogLevel::Debug, filename, std::to_string(lineno));
 }
 
 }
