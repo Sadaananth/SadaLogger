@@ -14,10 +14,10 @@ int main()
     LOG_ERROR << "This is a error message";
 
     // uint64_t count = 0;
-    while(true) {
-        //LOG_DEBUG << "Count: " << count;
-        //++count;
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
+    // while(true) {
+    //     //LOG_DEBUG << "Count: " << count;
+    //     //++count;
+    //     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    // }
     return 0;
 }

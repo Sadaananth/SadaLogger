@@ -6,6 +6,8 @@
 #include <mutex>
 #include <fstream>
 #include <memory>
+#include <atomic>
+#include <chrono>
 
 namespace Sada {
 
@@ -122,14 +124,14 @@ public:
     void add_sink(std::unique_ptr<LogSink> log_sink);
 private:
     LoggerImpl();
-    ~LoggerImpl() {}
+    ~LoggerImpl();
 
-    void log(LogLevel level);
     void run();
     void sink_output(const LogLine& log_line);
     std::string format_output(const LogLine& log_line);
 
     std::thread m_thread;
+    std::atomic_bool m_run_thread{false};
 
     std::queue<LogLine> m_log_list;
     std::mutex m_mutex;
@@ -145,16 +147,27 @@ LoggerImpl& LoggerImpl::instance()
 
 LoggerImpl::LoggerImpl()
 {
+    m_run_thread = true;
     m_thread = std::thread(&LoggerImpl::run, this);
+}
+
+LoggerImpl::~LoggerImpl()
+{
+    if(m_run_thread) {
+        std::cout << "Stopping thread" << std::endl;
+        m_run_thread = false;
+        m_thread.join();
+    }
 }
 
 std::stringstream& LoggerImpl::get_log_stream(LogLevel loglevel, const std::string& filename, const std::string& lineno)
 {
     LogLine log_line(loglevel, filename, lineno);
 
+    std::cout << to_string(loglevel) << " Queue size:" << m_log_list.size() << std::endl;
     std::lock_guard<std::mutex> lock(m_mutex);
     m_log_list.push(std::move(log_line));
-    auto& stream = m_log_list.front().m_line_stream;
+    auto& stream = m_log_list.back().m_line_stream;
 
     return stream;
 }
@@ -164,36 +177,35 @@ void LoggerImpl::add_sink(std::unique_ptr<LogSink> log_sink)
     m_sink_list.push_back(std::move(log_sink));
 }
 
-void LoggerImpl::log(LogLevel level)
-{
-    std::stringstream stream;
-
-    
-}
-
 void LoggerImpl::run()
 {
-    while(true) {
+    while(m_run_thread || !m_log_list.empty()) {
+        std::this_thread::sleep_for(std::chrono::microseconds(10));
         if(!m_log_list.empty()) {
-            
-            LogLine log_line;
-            {
-                std::lock_guard<std::mutex> lock(m_mutex);
-                log_line = m_log_list.front();
-                if(log_line.m_line_stream.str().empty()) {
-                    continue;
-                }
-                m_log_list.pop();
-            }
-            sink_output(log_line);
+            continue;
         }
+        
+        std::cout << "Taking log message" << std::endl;
+        LogLine log_line;
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            log_line = m_log_list.front();
+            if(log_line.m_line_stream.str().empty()) {
+                continue;
+            }
+            m_log_list.pop();
+        }
+        std::cout << "Message taken" << std::endl;
+        sink_output(log_line);
     }
+    std::cout << "Thread stopped" << std::endl;
 }
 
 void LoggerImpl::sink_output(const LogLine& log_line)
 {
     for(auto& sink : m_sink_list) {
         auto output = format_output(log_line);
+        std::cout << "Output to be printed " << output << std::endl;
         sink->print(output);
     }
 }
