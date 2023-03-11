@@ -154,7 +154,7 @@ LoggerImpl::LoggerImpl()
 LoggerImpl::~LoggerImpl()
 {
     if(m_run_thread) {
-        std::cout << "Stopping thread" << std::endl;
+        //std::cout << "Stopping thread" << std::endl;
         m_run_thread = false;
         m_thread.join();
     }
@@ -164,7 +164,7 @@ std::stringstream& LoggerImpl::get_log_stream(LogLevel loglevel, const std::stri
 {
     LogLine log_line(loglevel, filename, lineno);
 
-    std::cout << to_string(loglevel) << " Queue size:" << m_log_list.size() << std::endl;
+    //std::cout << to_string(loglevel) << " Queue size:" << m_log_list.size() << std::endl;
     std::lock_guard<std::mutex> lock(m_mutex);
     m_log_list.push(std::move(log_line));
     auto& stream = m_log_list.back().m_line_stream;
@@ -181,11 +181,11 @@ void LoggerImpl::run()
 {
     while(m_run_thread || !m_log_list.empty()) {
         std::this_thread::sleep_for(std::chrono::microseconds(10));
-        if(!m_log_list.empty()) {
+        if(m_log_list.empty()) {
             continue;
         }
         
-        std::cout << "Taking log message" << std::endl;
+        //std::cout << "Taking log message" << std::endl;
         LogLine log_line;
         {
             std::lock_guard<std::mutex> lock(m_mutex);
@@ -195,17 +195,17 @@ void LoggerImpl::run()
             }
             m_log_list.pop();
         }
-        std::cout << "Message taken" << std::endl;
+        //std::cout << "Message taken" << std::endl;
         sink_output(log_line);
     }
-    std::cout << "Thread stopped" << std::endl;
+    //std::cout << "Thread stopped" << std::endl;
 }
 
 void LoggerImpl::sink_output(const LogLine& log_line)
 {
     for(auto& sink : m_sink_list) {
         auto output = format_output(log_line);
-        std::cout << "Output to be printed " << output << std::endl;
+        //std::cout << "Output to be printed " << output << std::endl;
         sink->print(output);
     }
 }
