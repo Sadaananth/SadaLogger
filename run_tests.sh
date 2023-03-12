@@ -2,5 +2,6 @@
 
 ./build.sh
 
-cd build/tests/
-./loggertest
+cd build/
+
+ctest -j4
