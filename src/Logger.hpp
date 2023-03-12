@@ -38,6 +38,7 @@ public:
     static std::stringstream& log_debug(const std::string& filename, uint32_t lineno);
 
     void add_sink(Sink logsink, LogLevel minLogLevel, std::optional<std::string> filename = std::nullopt);
+
 private:
     Logger();
     ~Logger();
