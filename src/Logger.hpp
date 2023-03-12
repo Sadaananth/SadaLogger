@@ -11,6 +11,14 @@ namespace Sada {
 #define LOG_INFO Logger::log_info(__FILE__, __LINE__)
 #define LOG_DEBUG Logger::log_debug(__FILE__, __LINE__)
 
+enum class LogLevel : uint8_t
+{
+    Error,
+    Warning,
+    Info,
+    Debug
+};
+
 class LoggerImpl;
 
 class Logger
@@ -29,7 +37,7 @@ public:
     static std::stringstream& log_info(const std::string& filename, uint32_t lineno);
     static std::stringstream& log_debug(const std::string& filename, uint32_t lineno);
 
-    void add_sink(Sink logsink, std::optional<std::string> filename = std::nullopt);
+    void add_sink(Sink logsink, LogLevel minLogLevel, std::optional<std::string> filename = std::nullopt);
 private:
     Logger();
     ~Logger();

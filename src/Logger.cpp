@@ -11,14 +11,6 @@
 
 namespace Sada {
 
-enum class LogLevel : uint8_t
-{
-    Error,
-    Warning,
-    Info,
-    Debug
-};
-
 std::string to_string(LogLevel loglevel)
 {
     switch(loglevel) {
@@ -76,13 +68,23 @@ void LogLine::operator = (const LogLine& log_line)
 class LogSink
 {
 public:
+    LogSink(LogLevel log_level);
     virtual void print(const std::string& data) = 0;
+
+private:
+    LogLevel m_min_log_level;
 };
+
+LogSink::LogSink(LogLevel log_level)
+    : m_min_log_level(log_level)
+{
+    
+}
 
 class FileSink : public LogSink
 {
 public:
-    FileSink(const std::string& file_path);
+    FileSink(const std::string& file_path, LogLevel log_level);
 
     void print(const std::string& data) override;
 
@@ -90,7 +92,8 @@ private:
     std::ofstream m_out_stream;
 };
 
-FileSink::FileSink(const std::string& file_path)
+FileSink::FileSink(const std::string& file_path, LogLevel log_level)
+    : LogSink(log_level)
 {
     m_out_stream.open(file_path);
     if(!m_out_stream.is_open()) {
@@ -106,8 +109,15 @@ void FileSink::print(const std::string& data)
 class ConsoleSink : public LogSink
 {
 public:
+    ConsoleSink(LogLevel log_level);
     void print(const std::string& data) override;
 };
+
+ConsoleSink::ConsoleSink(LogLevel log_level)
+    : LogSink(log_level)
+{
+
+}
 
 void ConsoleSink::print(const std::string& data)
 {
@@ -236,18 +246,18 @@ Logger::~Logger()
 
 }
 
-void Logger::add_sink(Logger::Sink logsink, std::optional<std::string> filename)
+void Logger::add_sink(Logger::Sink logsink, LogLevel minLogLevel, std::optional<std::string> filename)
 {
     switch(logsink) {
         case Sink::console:
         {
-            m_logger_pImpl.add_sink(std::make_unique<ConsoleSink>(ConsoleSink()));
+            m_logger_pImpl.add_sink(std::make_unique<ConsoleSink>(ConsoleSink(minLogLevel)));
             break;
         }
         case Sink::file:
         {   
             if(filename.has_value()) {
-                m_logger_pImpl.add_sink(std::make_unique<FileSink>(FileSink(filename.value())));
+                m_logger_pImpl.add_sink(std::make_unique<FileSink>(FileSink(filename.value(), minLogLevel)));
             }
             break;
         }

@@ -20,3 +20,9 @@ After adding to the build system. To print,
     - `[Info] LoggerTest.cpp:12 This is a info message`
     - `[Warning] LoggerTest.cpp:13 This is a warning message`
     - `[Error] LoggerTest.cpp:14 This is a error message`
+
+# How to build
+To build the logger library, simply run the command `./build.sh` 
+
+# Run unit tests
+To run unit tests, run the command `./run_tests.sh`. Running this command will also build the library.
