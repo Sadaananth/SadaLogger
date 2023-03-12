@@ -9,4 +9,5 @@ add_library(SadaLogger SHARED ${SOURCES})
 set_property(TARGET SadaLogger PROPERTY CXX_STANDARD 17)
 target_link_libraries(SadaLogger -lpthread)
 
+enable_testing()
 add_subdirectory(tests)

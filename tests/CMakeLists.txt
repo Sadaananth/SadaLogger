@@ -22,3 +22,5 @@ target_link_libraries(LoggerTest GTest::gtest_main -lSadaLogger)
 
 include(GoogleTest)
 gtest_discover_tests(LoggerTest)
+
+add_test(LoggerGTest LoggerTest)
