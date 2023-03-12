@@ -8,6 +8,7 @@
 #include <memory>
 #include <atomic>
 #include <chrono>
+#include <filesystem>
 
 namespace Sada {
 
@@ -26,6 +27,16 @@ std::string to_string(LogLevel loglevel)
 
     throw std::runtime_error("Invalid log level");
 }
+
+std::string currentDateTime() {
+    std::time_t t = std::time(nullptr);
+    std::tm* now = std::localtime(&t);
+ 
+    char buffer[128];
+    strftime(buffer, sizeof(buffer), "%m-%d-%Y %X", now);
+    return buffer;
+}
+ 
 
 struct LogLine
 {
@@ -224,8 +235,9 @@ std::string LoggerImpl::format_output(const LogLine& log_line)
 {
     std::stringstream outputstream;
 
-    outputstream << "[" << to_string(log_line.m_log_level) << "] " << log_line.m_file_name << ":" << log_line.m_line_no
-        << " " << log_line.m_line_stream.str() << std::endl;
+    std::filesystem::path fullpath(log_line.m_file_name);
+
+    outputstream << currentDateTime() << " [" << to_string(log_line.m_log_level) << "] " << fullpath.filename().string() << ":" << log_line.m_line_no << " " << log_line.m_line_stream.str();
     
     return outputstream.str();
 }
