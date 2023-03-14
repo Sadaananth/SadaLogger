@@ -5,7 +5,6 @@ project(SadaLogger)
 set(SOURCES
 ${PROJECT_SOURCE_DIR}/src/Logger.cpp)
 
-message("PROJECT_SOURCE_DIR ${PROJECT_SOURCE_DIR}")
 add_library(SadaLogger SHARED ${SOURCES})
 set_property(TARGET SadaLogger PROPERTY CXX_STANDARD 17)
 target_link_libraries(SadaLogger -lpthread)

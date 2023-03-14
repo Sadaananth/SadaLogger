@@ -82,6 +82,7 @@ public:
     LogSink(LogLevel log_level);
     virtual void print(const std::string& data) = 0;
 
+    LogLevel min_log_level() const;
 private:
     LogLevel m_min_log_level;
 };
@@ -90,6 +91,11 @@ LogSink::LogSink(LogLevel log_level)
     : m_min_log_level(log_level)
 {
     
+}
+
+LogLevel LogSink::min_log_level() const
+{
+    return m_min_log_level;
 }
 
 class FileSink : public LogSink
@@ -175,7 +181,6 @@ LoggerImpl::LoggerImpl()
 LoggerImpl::~LoggerImpl()
 {
     if(m_run_thread) {
-        //std::cout << "Stopping thread" << std::endl;
         m_run_thread = false;
         m_thread.join();
     }
@@ -185,7 +190,6 @@ std::stringstream& LoggerImpl::get_log_stream(LogLevel loglevel, const std::stri
 {
     LogLine log_line(loglevel, filename, lineno);
 
-    //std::cout << to_string(loglevel) << " Queue size:" << m_log_list.size() << std::endl;
     std::lock_guard<std::mutex> lock(m_mutex);
     m_log_list.push(std::move(log_line));
     auto& stream = m_log_list.back().m_line_stream;
@@ -206,7 +210,6 @@ void LoggerImpl::run()
             continue;
         }
         
-        //std::cout << "Taking log message" << std::endl;
         LogLine log_line;
         {
             std::lock_guard<std::mutex> lock(m_mutex);
@@ -216,18 +219,17 @@ void LoggerImpl::run()
             }
             m_log_list.pop();
         }
-        //std::cout << "Message taken" << std::endl;
         sink_output(log_line);
     }
-    //std::cout << "Thread stopped" << std::endl;
 }
 
 void LoggerImpl::sink_output(const LogLine& log_line)
 {
     for(auto& sink : m_sink_list) {
-        auto output = format_output(log_line);
-        //std::cout << "Output to be printed " << output << std::endl;
-        sink->print(output);
+        if(sink->min_log_level() >= log_line.m_log_level) {
+            auto output = format_output(log_line);
+            sink->print(output);
+        }
     }
 }
 
